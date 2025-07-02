@@ -3,10 +3,12 @@ import { createContext, useContext } from "react";
 export type User = {
   name: string;
   email: string;
+  favorites: string[]; // array of pet ids
 };
 
 export type UserContextType = {
   user: User | null;
+  toggleFavorite: (id: string) => void;
   updateUser: (userData: User) => void;
   clearUser: () => void;
 };

@@ -1,30 +1,50 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Input from "../components/forms/Input";
 import MainLayout from "../components/layouts/MainLayout";
 import { useDebounce } from "../hooks/useDebounce";
 import { fetchDogsByIds, getAllDogBreeds, searchDogs } from "../api/search";
 import MultiSelect from "../components/forms/MultiSelect";
 import TagInput from "../components/forms/TagInput";
+import type { Dog } from "../types";
+import DogCard from "../components/cards/DogCard";
+import Pagination from "../components/navigation/Pagination";
 
 type FormValues = {
   breeds: string[];
   zipCodes: string[];
-  ageMin: string;
-  ageMax: string;
+  ageMin: number;
+  ageMax: number;
 };
 
 const initialValues: FormValues = {
   breeds: [],
   zipCodes: [],
-  ageMin: "",
-  ageMax: "",
+  ageMin: 0,
+  ageMax: 25,
 };
 
+const sortOptions = [
+  { label: "Name (A–Z)", value: "name:asc" },
+  { label: "Name (Z–A)", value: "name:desc" },
+  { label: "Age (Youngest)", value: "age:asc" },
+  { label: "Age (Oldest)", value: "age:desc" },
+  { label: "Breed (A–Z)", value: "breed:asc" },
+];
+
 const Search = () => {
-  const [results, setResults] = useState<any>();
+  const [error, setError] = useState<string | undefined>();
+  const [allDogs, setAllDogs] = useState<Dog[]>();
   const [formValues, setFormValues] = useState<FormValues>(initialValues);
   const debouncedValues = useDebounce(formValues, 500);
   const [breeds, setBreeds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("name:asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const RESULTS_PER_PAGE = 12;
+  const [totalResults, setTotalResults] = useState(0);
+  const totalPages = useMemo(
+    () => Math.ceil(totalResults / RESULTS_PER_PAGE),
+    [totalResults]
+  );
 
   useEffect(() => {
     const fetchDogBreeds = async () => {
@@ -32,6 +52,7 @@ const Search = () => {
         const breeds = await getAllDogBreeds();
         setBreeds(breeds);
       } catch (error) {
+        setError("Something went wrong");
         console.log(error);
       }
     };
@@ -39,15 +60,29 @@ const Search = () => {
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedValues]);
+
+  useEffect(() => {
     const fetchDogs = async () => {
-      console.log("Debounced form values:", debouncedValues);
-      const searchDogsRes = await searchDogs(debouncedValues);
-      const dogInfo = await fetchDogsByIds(searchDogsRes.resultIds);
-      setResults(dogInfo);
-      //fetchDogsByIds
+      const offset = (currentPage - 1) * RESULTS_PER_PAGE;
+      try {
+        const searchDogsRes = await searchDogs({
+          ...debouncedValues,
+          sort: sortBy,
+          from: offset,
+          size: RESULTS_PER_PAGE,
+        });
+        setTotalResults(searchDogsRes.total);
+        const dogInfo = await fetchDogsByIds(searchDogsRes?.resultIds);
+        setAllDogs(dogInfo);
+      } catch (error) {
+        setError("Something went wrong");
+        console.log(error);
+      }
     };
     fetchDogs();
-  }, [debouncedValues]);
+  }, [currentPage, debouncedValues, sortBy]);
 
   return (
     <MainLayout activeMenu="search">
@@ -77,7 +112,7 @@ const Search = () => {
               onChange={(e) =>
                 setFormValues((prev) => ({
                   ...prev,
-                  ageMin: e.target.value,
+                  ageMin: Number(e.target.value),
                 }))
               }
             />
@@ -92,7 +127,7 @@ const Search = () => {
               onChange={(e) =>
                 setFormValues((prev) => ({
                   ...prev,
-                  ageMax: e.target.value,
+                  ageMax: Number(e.target.value),
                 }))
               }
             />
@@ -109,10 +144,41 @@ const Search = () => {
             </div>
           </form>
         </div>
-        <div className="col-span-3 border h-full my-5 rounded">
-          {results?.map((result) => {
-            return <img src={result.img} />;
+
+        <div className="col-span-3 h-full my-5 rounded grid grid-cols-3 gap-4">
+          <div className="mb-4">
+            <label
+              htmlFor="sortBy"
+              className="mr-2 text-sm font-medium text-gray-700"
+            >
+              Sort by:
+            </label>
+            <select
+              id="sortBy"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-span-3">{`${totalResults} Results`} </div>
+          {!allDogs?.length && <p className="p-4">No dogs found.</p>}
+          {allDogs?.map((dog: Dog) => {
+            return <DogCard key={dog.id} dog={dog} />;
           })}
+          <div className="col-span-3">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+          {error && <p className="text-red-600">{error}</p>}
         </div>
       </div>
     </MainLayout>

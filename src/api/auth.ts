@@ -6,12 +6,9 @@ type LoginReq = {
 };
 
 export const loginUser = async (reqBody: LoginReq) => {
-  // req : { name, email }
-  try {
-    await axiosInstance.post(`/auth/login`, reqBody);
-    // if successful response, browser will automatically send
-    // this cookie with all successive credentialed requests to the API
-  } catch (error) {
-    console.log("error:", error);
-  }
+  await axiosInstance.post(`/auth/login`, reqBody);
+};
+
+export const logoutUser = async () => {
+  await axiosInstance.post(`/auth/logout`);
 };

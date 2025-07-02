@@ -24,7 +24,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   };
 
   return (
-    <div className="relative inline-block w-full">
+    <div className="relative inline-block w-full max-w-md">
       {label && <label className="block mb-1 font-medium">{label}</label>}
       <div
         className="border p-2 rounded cursor-pointer bg-white"

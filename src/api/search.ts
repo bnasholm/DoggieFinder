@@ -3,12 +3,8 @@ import axiosInstance from "./constants";
 
 // get all dog breeds
 export const getAllDogBreeds = async () => {
-  try {
-    const response = await axiosInstance.get(`/dogs/breeds`);
-    return response.data;
-  } catch (error) {
-    console.log("error:", error);
-  }
+  const response = await axiosInstance.get(`/dogs/breeds`);
+  return response.data;
 };
 
 /* Search params:
@@ -31,8 +27,11 @@ export const getAllDogBreeds = async () => {
 type SearchParams = {
   breeds: string[];
   zipCodes: string[];
-  ageMin: string;
-  ageMax: string;
+  ageMin: number;
+  ageMax: number;
+  from?: number;
+  size?: number;
+  sort?: string;
 };
 
 /* Returns an object with the following properties:
@@ -44,23 +43,20 @@ type SearchParams = {
  */
 export const searchDogs = async (params: SearchParams) => {
   const cleanedParams = cleanParams(params);
-  const query = new URLSearchParams(cleanedParams as any).toString();
-  try {
-    const response = await axiosInstance.get(
-      `/dogs/search${query !== "" ? `?${query}` : ""}`
-    );
-    return response.data;
-  } catch (error) {
-    console.log("error:", error);
-  }
+  const query = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(cleanedParams).map(([key, value]) => [key, String(value)])
+    )
+  ).toString();
+
+  const response = await axiosInstance.get(
+    `/dogs/search${query !== "" ? `?${query}` : ""}`
+  );
+  return response.data;
 };
 
 // get dogs by ids
 export const fetchDogsByIds = async (ids: string[]) => {
-  try {
-    const response = await axiosInstance.post(`/dogs`, ids);
-    return response.data;
-  } catch (error) {
-    console.log("error:", error);
-  }
+  const response = await axiosInstance.post(`/dogs`, ids);
+  return response.data;
 };

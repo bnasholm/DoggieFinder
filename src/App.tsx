@@ -22,10 +22,7 @@ const App = () => {
 };
 
 const Root = () => {
-  // if token exists
-  const isAuthenticated = true; // !!localStorage.getItem("token");
-
-  return isAuthenticated ? <Navigate to="/search" /> : <Navigate to="/login" />;
+  return <Navigate to="/search" />;
 };
 
 export default App;

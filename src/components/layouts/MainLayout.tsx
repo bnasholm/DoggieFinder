@@ -1,5 +1,4 @@
 import Navbar from "../navigation/Navbar";
-import SideMenu from "../navigation/SideMenu";
 import { useUser } from "../../contexts/UserContext";
 
 const MainLayout = ({
@@ -16,10 +15,6 @@ const MainLayout = ({
 
       {user && (
         <div className="flex">
-          <div className="max-[1000px]:hidden">
-            <SideMenu activeMenu={activeMenu} />
-          </div>
-
           <div className="grow mx-5">{children}</div>
         </div>
       )}

@@ -1,23 +1,46 @@
-import { useState } from "react";
-import SideMenu from "./SideMenu";
+import { Link, useNavigate } from "react-router-dom";
+import { NAV_PAGES } from "./constants";
+import { useUser } from "../../contexts/UserContext";
+import { logoutUser } from "../../api";
+import { FaPaw } from "react-icons/fa";
 
 const Navbar = ({ activeMenu }: { activeMenu: string }) => {
-  const [openSideMenu, setOpenSideMenu] = useState(false);
+  const navigate = useNavigate();
+  const { clearUser } = useUser();
 
+  const handleLogOut = async () => {
+    try {
+      await logoutUser();
+      clearUser();
+      navigate("/login");
+    } catch (error) {
+      console.warn(error);
+    }
+  };
   return (
-    <div className="flex gap-5 bg-white border border-b border-gray-200/50 backdrop-blur-[2px] py-4 px-7 sticky top-0 z-30">
-      <button
-        className="block lg:hidden text-black"
-        onClick={() => setOpenSideMenu(!openSideMenu)}
-      >
-        {openSideMenu ? "X" : "-X-"}
+    <div className="flex justify-between bg-white border border-b border-gray-200/50 backdrop-blur-[2px] py-4 px-7 sticky top-0 z-30">
+      <div className="flex gap-5">
+        <h2 className="text-lg font-medium text-black flex gap-2 items-center">
+          <span>
+            <FaPaw />
+          </span>
+          DoggieFinder
+        </h2>
+        {NAV_PAGES.map(({ id, label, href }) => (
+          <Link
+            key={id}
+            to={href}
+            className={`${
+              activeMenu === label.toLowerCase() ? "font-semibold" : ""
+            }`}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+      <button className="cursor-pointer" onClick={handleLogOut}>
+        Log out
       </button>
-      <h2 className="text-lg font-medium text-black">DoggieFinder</h2>
-      {openSideMenu && (
-        <div className="fixed top-[61px] -ml-4 bg-white">
-          <SideMenu activeMenu={activeMenu} />{" "}
-        </div>
-      )}
     </div>
   );
 };

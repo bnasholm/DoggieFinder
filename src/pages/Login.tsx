@@ -26,7 +26,7 @@ const Login = () => {
     setError("");
     try {
       await loginUser({ name, email });
-      updateUser({ name, email });
+      updateUser({ name, email, favorites: [] });
       navigate("/");
     } catch (error) {
       setError("Something went wrong");
@@ -58,9 +58,13 @@ const Login = () => {
           />
           <p className="text-red-500 text-xs pb-2.5">{error || <>&nbsp;</>}</p>
 
-          <button type="submit" className="btn-primary">
+          <button
+            className="px-3 py-1 rounded border text-sm bg-white text-gray-800 border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+            type="submit"
+          >
             Log in
           </button>
+          {error && <p className="text-red-600">{error}</p>}
         </form>
       </div>
     </AuthLayout>
