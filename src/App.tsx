@@ -7,10 +7,12 @@ import {
 import Login from "./pages/Login";
 import Favorites from "./pages/Favorites";
 import Search from "./pages/Search";
+import ErrorInterceptor from "./components/errors/ErrorInterceptor";
 
 const App = () => {
   return (
-    <Router>
+    <Router basename="/doggie-finder">
+      <ErrorInterceptor />
       <Routes>
         <Route path="/" element={<Root />} />
         <Route path="/login" element={<Login />} />
